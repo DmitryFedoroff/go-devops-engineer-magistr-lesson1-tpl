@@ -90,7 +90,7 @@ func checkResourceUsage(m Metric) {
 	usagePercent, freeResource := m.checkUsage(m.capacity, m.usage)
 
 	if usagePercent > m.threshold {
-		if m.unit == "%" {
+		if m.unit == "%" || m.unit == "" {
 			fmt.Printf(m.message, usagePercent)
 		} else {
 			fmt.Printf(m.message, freeResource)
@@ -151,6 +151,8 @@ func initiatePolling(url string, retries int) func() chan string {
 
 				response.Body.Close()
 				dataChannel <- string(body)
+
+				errorCounter = 0
 			}
 		}()
 
@@ -165,7 +167,7 @@ func handleResponseError(response *http.Response, err error, errorCounter int) i
 	if response.StatusCode != http.StatusOK {
 		return handlePollingError(fmt.Errorf("invalid status code: %d", response.StatusCode), errorCounter, "")
 	}
-	return 0
+	return errorCounter
 }
 
 func handlePollingError(err error, errorCounter int, message string) int {
